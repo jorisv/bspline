@@ -51,13 +51,13 @@ class memoize(object):
 class Bspline():
     """Numpy implementation of Cox - de Boor algorithm in 1D."""
 
-    def __init__(self, knot_vector, order):
+    def __init__(self, knot_vector, degree):
         """Create a Bspline object.
 
         Parameters:
             knot_vector: Python list or rank-1 Numpy array containing knot vector
                          entries
-            order: Order of interpolation, e.g. 0 -> piecewise constant between
+            degree: Degree of interpolation, e.g. 0 -> piecewise constant between
                    knots, 1 -> piecewise linear between knots, etc.
 
         Returns:
@@ -69,11 +69,11 @@ class Bspline():
             raise ValueError("knot_vector must be Python list or rank-1 array, but got rank = %d" % (kv.ndim))
         self.knot_vector = kv
 
-        order = int(order)
-        if order < 0:
-            raise ValueError("order must be integer >= 0, but got %d" % (order))
+        degree = int(degree)
+        if degree < 0:
+            raise ValueError("degree must be integer >= 0, but got %d" % (order))
 
-        self.p = order
+        self.p = degree
 
         #Dummy calls to the functions for memory storage
         self.__call__(0.0)
