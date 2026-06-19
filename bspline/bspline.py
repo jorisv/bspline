@@ -155,7 +155,21 @@ class Bspline:
         """Convenience function to compute first derivative of basis functions. 'Memoized' for speed."""
         return self.__basis(xi, self.p, compute_derivatives=True)
 
-    def plot(self):
+    def compute(self, full_range=True):
+        if full_range:
+            x_min = self.knot_vector[0]
+            x_max = self.knot_vector[-1]
+        else:
+            x_min = self.knot_vector[self.p]
+            x_max = self.knot_vector[-(self.p + 1)]
+
+        x = np.linspace(x_min, x_max, num=1000)
+
+        N = np.array([self.basis(i) for i in x]).T
+        N_cum = np.array([self.cum_basis(i) for i in x]).T
+        return x, N, N_cum
+
+    def plot(self, x, N, N_cum):
         """Plot basis functions over full range of knots.
 
         Convenience function. Requires matplotlib.
@@ -171,14 +185,6 @@ class Bspline:
                 file=stderr,
             )
             raise
-
-        x_min = np.min(self.knot_vector)
-        x_max = np.max(self.knot_vector)
-
-        x = np.linspace(x_min, x_max, num=1000)
-
-        N = np.array([self.basis(i) for i in x]).T
-        N_cum = np.array([self.cum_basis(i) for i in x]).T
 
         fig, (ax1, ax2) = plt.subplots(2, 1)
         ax1.tick_params(
