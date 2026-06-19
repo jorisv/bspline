@@ -12,6 +12,7 @@ python = "*"
 pip = "*"
 numpy = "*"
 matplotlib = "*"
+scipy = ">=1.17.1,<2"
 
 [pypi-dependencies]
 bspline = { path = ".", editable = true }
