@@ -20,11 +20,17 @@ def deBoorBasisSparse(
     d[0] = [1.0] * (p + 1)
     for i in range(ignore):
         d[0][i] = 0.0
+    # Iterate over all degree
     for r in range(p):
-        for j in range(p - r):
-            _r = r + 1
-            _i = start_knot - p + _r + j
-            alpha = (t - knots[_i]) / (knots[_i + 1 + p - _r] - knots[_i])
+        current_degree = p - (r + 1)
+        assert current_degree >= 0
+        # Iterate over all non zero knot vector for a specific degree
+        for j in range(current_degree + 1):
+            current_knot = start_knot - current_degree + j
+            assert current_knot >= 0
+            last_knot = current_knot + current_degree + 1
+            assert last_knot >= 0
+            alpha = (t - knots[current_knot]) / (knots[last_knot] - knots[current_knot])
             d[r + 1][j] = (1.0 - alpha) * d[r][j] + alpha * d[r][j + 1]
     return d[-1]
 
@@ -36,23 +42,34 @@ def deBoorBasisSparseV2(
     d[0] = [1.0] * (p + 1)
     for i in range(ignore):
         d[0][i] = 0.0
+    # Evaluate basis function with only non zero right coefficient
+    first_pass_start_knot = start_knot - p + ignore
+    assert first_pass_start_knot >= 0
     for r in range(ignore):
-        _r = r + 1
-        _i = start_knot - p + _r + ignore - _r
-        alpha = (t - knots[_i]) / (knots[_i + 1 + p - _r] - knots[_i])
-        d[r + 1][ignore - _r] = alpha * d[r][ignore - _r + 1]
+        current_degree = p - (r + 1)
+        assert current_degree >= 0
+        last_knot = first_pass_start_knot + current_degree + 1
+        assert last_knot >= 0
+        alpha = (t - knots[first_pass_start_knot]) / (
+            knots[last_knot] - knots[first_pass_start_knot]
+        )
+        d[r + 1][ignore - (r + 1)] = alpha * d[r][ignore - r]
+    # Iterate over all degree
     for r in range(p):
-        _r = r + 1
-        # TODO better ?
-        start = max(0, ignore - _r + 1)
-        for j in range(start, p - r):
-            _i = start_knot - p + _r + j
-            alpha = (t - knots[_i]) / (knots[_i + 1 + p - _r] - knots[_i])
+        current_degree = p - (r + 1)
+        start = max(0, ignore - r)
+        # Iterate over all non zero knot vector for a specific degree
+        for j in range(start, current_degree + 1):
+            current_knot = start_knot - current_degree + j
+            assert current_knot >= 0
+            last_knot = current_knot + current_degree + 1
+            assert last_knot >= 0
+            alpha = (t - knots[current_knot]) / (knots[last_knot] - knots[current_knot])
             d[r + 1][j] = (1.0 - alpha) * d[r][j] + alpha * d[r][j + 1]
     return d[-1]
 
 
-knot_vector = [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]
+knot_vector = [0.0, 1.1, 2.3, 3.0, 4.5, 5.8, 6.2, 7.9, 8.4, 9.2]
 degree = 4
 order = degree + 1
 nb_control = len(knot_vector) - order
