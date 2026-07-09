@@ -40,8 +40,8 @@ def deBoorBasisSparseV2(
 ):
     d = [[0.0] * (p + 1 - j) for j in range(0, p + 1)]
     d[0] = [1.0] * (p + 1)
-    for i in range(ignore):
-        d[0][i] = 0.0
+    if ignore > 0:
+        d[0][ignore - 1] = 0.0
     # Evaluate basis function with only non zero right coefficient
     first_pass_start_knot = start_knot - p + ignore
     assert first_pass_start_knot >= 0
