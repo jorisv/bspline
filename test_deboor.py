@@ -69,14 +69,14 @@ def deBoorBasisSparseV2(
     return d[-1]
 
 
-def deBoorBasis(start_knot: int, t: float, knots: List[float], p: int):
+def deBoorBasis(root_basis: int, t: float, knots: List[float], p: int):
     d = np.zeros((p + 1, p + 1))
 
     d[0, 0] = 1.0
     # Evaluate diagonal part
     for previous_degree in range(p):
         current_degree = previous_degree + 1
-        left_basis = start_knot - current_degree
+        left_basis = root_basis - current_degree
         left_basis_start_knot = left_basis + 1
         left_basis_end_knot = left_basis_start_knot + current_degree
         left_basis_alpha = (knots[left_basis_end_knot] - t) / (
@@ -84,7 +84,7 @@ def deBoorBasis(start_knot: int, t: float, knots: List[float], p: int):
         )
         d[current_degree, 0] = left_basis_alpha * d[previous_degree, 0]
 
-        right_basis = start_knot
+        right_basis = root_basis
         right_basis_start_knot = right_basis
         right_basis_end_knot = right_basis_start_knot + current_degree
         right_basis_alpha = (t - knots[right_basis_start_knot]) / (
@@ -97,9 +97,9 @@ def deBoorBasis(start_knot: int, t: float, knots: List[float], p: int):
     # Evaluate central part
     for previous_degree in range(1, p):
         current_degree = previous_degree + 1
-        current_degree_basis_number = current_degree + 1
-        left_most_basis = start_knot - current_degree
-        for i in range(1, current_degree_basis_number - 1):
+        current_degree_basis_numbers = current_degree + 1
+        left_most_basis = root_basis - current_degree
+        for i in range(1, current_degree_basis_numbers - 1):
             current_basis = left_most_basis + i
             left_side_start_knot = current_basis
             left_side_end_knot = current_basis + current_degree
@@ -204,4 +204,20 @@ print(np.sum(deBoorBasis_result[-1, :]) - N_cum[0, index])
 print(
     np.sum(deBoorBasis_result[-1, :])
     - deBoorBasisSparseV2(start_knot, x[index], knot_vector, degree, 0)
+)
+print(
+    np.sum(deBoorBasis_result[-1, 1:])
+    - deBoorBasisSparseV2(start_knot, x[index], knot_vector, degree, 1)
+)
+print(
+    np.sum(deBoorBasis_result[-1, 2:])
+    - deBoorBasisSparseV2(start_knot, x[index], knot_vector, degree, 2)
+)
+print(
+    np.sum(deBoorBasis_result[-1, 3:])
+    - deBoorBasisSparseV2(start_knot, x[index], knot_vector, degree, 3)
+)
+print(
+    np.sum(deBoorBasis_result[-1, 4:])
+    - deBoorBasisSparseV2(start_knot, x[index], knot_vector, degree, 4)
 )
