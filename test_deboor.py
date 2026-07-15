@@ -69,6 +69,56 @@ def deBoorBasisSparseV2(
     return d[-1]
 
 
+def deBoorBasis(start_knot: int, t: float, knots: List[float], p: int):
+    d = np.zeros((p + 1, p + 1))
+
+    d[0, 0] = 1.0
+    # Evaluate diagonal part
+    for previous_degree in range(p):
+        current_degree = previous_degree + 1
+        left_basis = start_knot - current_degree
+        left_basis_start_knot = left_basis + 1
+        left_basis_end_knot = left_basis_start_knot + current_degree
+        left_basis_alpha = (knots[left_basis_end_knot] - t) / (
+            knots[left_basis_end_knot] - knots[left_basis_start_knot]
+        )
+        d[current_degree, 0] = left_basis_alpha * d[previous_degree, 0]
+
+        right_basis = start_knot
+        right_basis_start_knot = right_basis
+        right_basis_end_knot = right_basis_start_knot + current_degree
+        right_basis_alpha = (t - knots[right_basis_start_knot]) / (
+            knots[right_basis_end_knot] - knots[right_basis_start_knot]
+        )
+        d[current_degree, current_degree] = (
+            right_basis_alpha * d[previous_degree, previous_degree]
+        )
+
+    # Evaluate central part
+    for previous_degree in range(1, p):
+        current_degree = previous_degree + 1
+        current_degree_basis_number = current_degree + 1
+        left_most_basis = start_knot - current_degree
+        for i in range(1, current_degree_basis_number - 1):
+            current_basis = left_most_basis + i
+            left_side_start_knot = current_basis
+            left_side_end_knot = current_basis + current_degree
+            left_side_alpha = (t - knots[left_side_start_knot]) / (
+                knots[left_side_end_knot] - knots[left_side_start_knot]
+            )
+            right_side_start_knot = left_side_start_knot + 1
+            right_side_end_knot = left_side_end_knot + 1
+            right_side_alpha = (knots[right_side_end_knot] - t) / (
+                knots[right_side_end_knot] - knots[right_side_start_knot]
+            )
+            d[current_degree, i] = (
+                left_side_alpha * d[previous_degree, i - 1]
+                + right_side_alpha * d[previous_degree, i]
+            )
+
+    return d
+
+
 knot_vector = [0.0, 1.1, 2.3, 3.0, 4.5, 5.8, 6.2, 7.9, 8.4, 9.2]
 degree = 4
 order = degree + 1
@@ -123,4 +173,35 @@ print(
 )
 print(
     "0, 0, 0, 0, 1", deBoorBasisSparseV2(start_knot, x[index], knot_vector, degree, 4)
+)
+print()
+deBoorBasis_result = deBoorBasis(start_knot, x[index], knot_vector, degree)
+print(
+    "1, 1, 1, 1, 1",
+    np.sum(deBoorBasis_result[-1, :]),
+)
+print(
+    "0, 1, 1, 1, 1",
+    np.sum(deBoorBasis_result[-1, 1:]),
+)
+print(
+    "0, 0, 1, 1, 1",
+    np.sum(deBoorBasis_result[-1, 2:]),
+)
+print(
+    "0, 0, 0, 1, 1",
+    np.sum(deBoorBasis_result[-1, 3:]),
+)
+print(
+    "0, 0, 0, 0, 1",
+    np.sum(deBoorBasis_result[-1, 4:]),
+)
+
+# Test numerical precision issue
+# There is an 1e-16 error on the deBoorBasis function
+print(deBoorBasis_result[-1, :] - N[:, index])
+print(np.sum(deBoorBasis_result[-1, :]) - N_cum[0, index])
+print(
+    np.sum(deBoorBasis_result[-1, :])
+    - deBoorBasisSparseV2(start_knot, x[index], knot_vector, degree, 0)
 )
